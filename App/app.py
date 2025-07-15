@@ -19,7 +19,7 @@ from content_based_filtering import load_and_prepare_data, recommend_by_genres
 # Step 4: Load data
 @st.cache_data
 def get_data():
-    data_path = BASE_DIR / 'data' / 'movies_ratings_merged.csv'
+    data_path = BASE_DIR / 'Data' / 'movies_ratings_merged.csv'
     if not data_path.exists():
         st.error(f"❌ File not found: {data_path}")
         st.stop()
