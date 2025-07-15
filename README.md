@@ -19,8 +19,8 @@ Whether you're in the mood for action-packed thrillers, light-hearted comedies, 
 
 ## 🚀 Live App
 
-👉 [Click here to try the live app](https://YOUR-STREAMLIT-LINK-HERE)  
-_(Replace with your Streamlit Share or other hosted URL)_
+👉 [Click here to try the live app](https://genre-based-movie-recommendation-system-mg4vxijzaavb57ytlwx3jt.streamlit.app/)  
+
 
 ---
 
