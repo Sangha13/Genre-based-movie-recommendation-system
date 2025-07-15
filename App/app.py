@@ -2,75 +2,73 @@ import streamlit as st
 import sys
 import os
 import base64
+from pathlib import Path
 
-# Step 1: Get absolute path of the root directory (M_R_S)
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+# Step 1: Get absolute path to project root
+APP_DIR = Path(__file__).parent.resolve()
+BASE_DIR = APP_DIR.parent
 
 # Step 2: Add src folder to system path
-SRC_PATH = os.path.join(BASE_DIR, 'src')
-if SRC_PATH not in sys.path:
-    sys.path.append(SRC_PATH)
+SRC_PATH = BASE_DIR / 'src'
+if str(SRC_PATH) not in sys.path:
+    sys.path.append(str(SRC_PATH))
 
 # Step 3: Import your functions
 from content_based_filtering import load_and_prepare_data, recommend_by_genres
 
-# Step 4: Debug File Path Issue (TEMPORARY)
-try:
-    data_folder_path = os.path.join(BASE_DIR, 'data')
-    st.write("🔍 BASE_DIR:", BASE_DIR)
-    st.write("🔍 Looking for file at:", data_folder_path)
-    st.write("📂 Files in data/ folder:", os.listdir(data_folder_path))
-except Exception as e:
-    st.error(f"⚠️ Could not read data folder: {e}")
-
-# Step 5: Load data
+# Step 4: Load data
 @st.cache_data
 def get_data():
-    data_path = os.path.join(BASE_DIR, 'data', 'movies_ratings_merged.csv')
-    return load_and_prepare_data(data_path)
+    data_path = BASE_DIR / 'data' / 'movies_ratings_merged.csv'
+    if not data_path.exists():
+        st.error(f"❌ File not found: {data_path}")
+        st.stop()
+    return load_and_prepare_data(str(data_path))
 
 df_exploded = get_data()
 
-# Step 6: Set background with soft overlay and custom text styling
+# Step 5: Set background image
 def set_background(image_path):
-    with open(image_path, "rb") as f:
-        encoded = base64.b64encode(f.read()).decode()
-    css = f"""
-    <style>
-    [data-testid="stApp"] {{
-        background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
-                          url("data:image/avif;base64,{encoded}");
-        background-size: cover;
-        background-repeat: no-repeat;
-        background-position: center;
-        background-attachment: fixed;
-        color: white;
-    }}
+    try:
+        with open(image_path, "rb") as f:
+            encoded = base64.b64encode(f.read()).decode()
+        css = f"""
+        <style>
+        [data-testid="stApp"] {{
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                              url("data:image/avif;base64,{encoded}");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+        }}
 
-    .stMarkdown, .stTextInput, .stSelectbox, .stMultiselect, .stDataFrame {{
-        color: white !important;
-    }}
+        .stMarkdown, .stTextInput, .stSelectbox, .stMultiselect, .stDataFrame {{
+            color: white !important;
+        }}
 
-    label[for^="genre"] {{
-        color: black !important;
-        font-weight: bold;
-    }}
+        label[for^="genre"] {{
+            color: black !important;
+            font-weight: bold;
+        }}
 
-    .stAlert p {{
-        color: black !important;
-        font-weight: bold;
-    }}
-    </style>
-    """
-    st.markdown(css, unsafe_allow_html=True)
+        .stAlert p {{
+            color: black !important;
+            font-weight: bold;
+        }}
+        </style>
+        """
+        st.markdown(css, unsafe_allow_html=True)
+    except Exception as e:
+        st.warning(f"⚠️ Background image could not be loaded. Reason: {e}")
 
-# Set the background image
-set_background(os.path.join(os.path.dirname(__file__), "background_image.avif"))
+set_background(APP_DIR / "background_image.avif")
 
-# Step 7: App Title
+# Step 6: Streamlit UI
 st.title("🎬 Genre-Based Movie Recommender")
 
-# Step 8: Genre Multiselect with placeholder inside (no label)
+# Step 7: Genre Selection
 unique_genres = sorted(df_exploded['genres'].unique())
 selected_genres = st.multiselect(
     label="",
@@ -80,10 +78,9 @@ selected_genres = st.multiselect(
     key="genre"
 )
 
-# Step 9: Show Recommendations
+# Step 8: Show recommendations
 if selected_genres:
     st.subheader("🎯 Top Recommendations")
-
     results = recommend_by_genres(selected_genres, df_exploded)
 
     for _, row in results.iterrows():
