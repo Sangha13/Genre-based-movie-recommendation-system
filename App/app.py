@@ -14,7 +14,16 @@ if SRC_PATH not in sys.path:
 # Step 3: Import your functions
 from content_based_filtering import load_and_prepare_data, recommend_by_genres
 
-# Step 4: Load data
+# Step 4: Debug File Path Issue (TEMPORARY)
+try:
+    data_folder_path = os.path.join(BASE_DIR, 'data')
+    st.write("🔍 BASE_DIR:", BASE_DIR)
+    st.write("🔍 Looking for file at:", data_folder_path)
+    st.write("📂 Files in data/ folder:", os.listdir(data_folder_path))
+except Exception as e:
+    st.error(f"⚠️ Could not read data folder: {e}")
+
+# Step 5: Load data
 @st.cache_data
 def get_data():
     data_path = os.path.join(BASE_DIR, 'data', 'movies_ratings_merged.csv')
@@ -22,7 +31,7 @@ def get_data():
 
 df_exploded = get_data()
 
-# Step 5: Set background with soft overlay and custom text styling
+# Step 6: Set background with soft overlay and custom text styling
 def set_background(image_path):
     with open(image_path, "rb") as f:
         encoded = base64.b64encode(f.read()).decode()
@@ -58,10 +67,10 @@ def set_background(image_path):
 # Set the background image
 set_background(os.path.join(os.path.dirname(__file__), "background_image.avif"))
 
-# Step 6: App Title
+# Step 7: App Title
 st.title("🎬 Genre-Based Movie Recommender")
 
-# Step 7: Genre Multiselect with placeholder inside (no label)
+# Step 8: Genre Multiselect with placeholder inside (no label)
 unique_genres = sorted(df_exploded['genres'].unique())
 selected_genres = st.multiselect(
     label="",
@@ -71,7 +80,7 @@ selected_genres = st.multiselect(
     key="genre"
 )
 
-# Step 8: Show Recommendations
+# Step 9: Show Recommendations
 if selected_genres:
     st.subheader("🎯 Top Recommendations")
 
@@ -80,3 +89,5 @@ if selected_genres:
     for _, row in results.iterrows():
         st.markdown(f"**🎬 {row['title']}**  \n⭐ Average Rating: {round(row['avg_rating'], 2)}")
         st.markdown("---")
+else:
+    st.info("Please select at least one genre.")
